@@ -7,113 +7,90 @@ on:
   pull_request:
 
 jobs:
-  test-chromium:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+						  
     steps:
+      # 1️⃣ Checkout project
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
+      # 3️⃣ Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
 
+      # 4️⃣ Build project
       - name: Build project
         run: dotnet build --no-restore
 
+      # 5️⃣ Install Playwright browsers (.NET CLI)
       - name: Install Playwright browsers
-        run: npx playwright install
+        run: dotnet tool restore
+      - run: dotnet tool run playwright install
 
-      - name: Run Chromium tests
+      # 6️⃣ Run tests for the current browser
+      - name: Run tests on ${{ matrix.browser }}
         env:
-          BROWSER: chromium
-        run: dotnet test --logger "trx;LogFileName=TestResults_chromium.trx"
+          BROWSER: ${{ matrix.browser }}
+        run: dotnet test --logger "trx;LogFileName=TestResults_${{ matrix.browser }}.trx"
 
-      - name: Upload Chromium video
+      # 7️⃣ Upload video
+      - name: Upload video
         uses: actions/upload-artifact@v4
         with:
-          name: videos-chromium
-          path: videos/chromium
+          name: videos-${{ matrix.browser }}
+          path: videos/${{ matrix.browser }}
 
-      - name: Upload Chromium screenshots
+      # 8️⃣ Upload screenshots
+      - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots-chromium
-          path: screenshots/chromium
+          name: screenshots-${{ matrix.browser }}
+          path: screenshots/${{ matrix.browser }}
 
-  test-firefox:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+			  
+						  
+		  
+						   
+								 
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
+						
+									 
+			 
+								
 
-      - name: Restore dependencies
-        run: dotnet restore
+								  
+						   
 
-      - name: Build project
-        run: dotnet build --no-restore
+						   
+									  
 
-      - name: Install Playwright browsers
-        run: npx playwright install
+										 
+								   
 
-      - name: Run Firefox tests
-        env:
-          BROWSER: firefox
-        run: dotnet test --logger "trx;LogFileName=TestResults_firefox.trx"
+							  
+			
+						 
+																		  
 
-      - name: Upload Firefox video
-        uses: actions/upload-artifact@v4
-        with:
-          name: videos-firefox
-          path: videos/firefox
+								 
+										
+			 
+							 
+							 
 
-      - name: Upload Firefox screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-firefox
-          path: screenshots/firefox
-
-  test-webkit:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build project
-        run: dotnet build --no-restore
-
-      - name: Install Playwright browsers
-        run: npx playwright install
-
-      - name: Run WebKit tests
-        env:
-          BROWSER: webkit
-        run: dotnet test --logger "trx;LogFileName=TestResults_webkit.trx"
-
-      - name: Upload WebKit video
-        uses: actions/upload-artifact@v4
-        with:
-          name: videos-webkit
-          path: videos/webkit
-
-      - name: Upload WebKit screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-webkit
-          path: screenshots/webkit
+									   
+										
+			 
+								  
+								  
