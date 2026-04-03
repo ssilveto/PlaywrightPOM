@@ -4,58 +4,56 @@ namespace PlaywrightPOM.Base;
 
 
 
-    public abstract class BaseTest : IAsyncLifetime
+public class BaseTest
+{
+    protected IBrowser Browser { get; private set; }
+    protected IPage Page { get; private set; }
+    protected IBrowserContext Context { get; private set; }
+    protected IPlaywright PlaywrightInstance { get; private set; }
+
+    // Инициализация с browserName
+    public async Task InitializeAsync(string browserName)
     {
-        protected IPlaywright Playwright = null!;
-        protected IBrowser Browser = null!;
-        protected IBrowserContext Context = null!;
-        protected IPage Page = null!;
+        PlaywrightInstance = await Playwright.CreateAsync();
 
-        protected virtual string BrowserType => "chromium";
-        protected string Timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-        protected string BaseDir =>
-            Path.Combine(Directory.GetCurrentDirectory(), "videos");
-
-        public async Task InitializeAsync()
+        BrowserTypeLaunchOptions launchOptions = new BrowserTypeLaunchOptions
         {
-            Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+            Headless = false,
+            SlowMo = 100
+        };
 
-            Browser = BrowserType switch
-            {
-                "chromium" => await Playwright.Chromium.LaunchAsync(new() { Headless = false, SlowMo = 200 }),
-                "firefox" => await Playwright.Firefox.LaunchAsync(new() { Headless = false, SlowMo = 200 }),
-                "webkit" => await Playwright.Webkit.LaunchAsync(new() { Headless = false, SlowMo = 200 }),
-                _ => throw new Exception("Invalid browser")
-            };
-
-            Context = await Browser.NewContextAsync(new()
-            {
-                RecordVideoDir = Path.Combine(BaseDir, GetType().Name, BrowserType, Timestamp),
-                RecordVideoSize = new() { Width = 1280, Height = 720 }
-            });
-
-            Page = await Context.NewPageAsync();
-        }
-
-        public async Task DisposeAsync()
+        Browser = browserName.ToLower() switch
         {
-            await Page.WaitForTimeoutAsync(1000);
+            "firefox" => await PlaywrightInstance.Firefox.LaunchAsync(launchOptions),
+            "webkit" => await PlaywrightInstance.Webkit.LaunchAsync(launchOptions),
+            _ => await PlaywrightInstance.Chromium.LaunchAsync(launchOptions),
+        };
 
-            await Context.CloseAsync();
-            await Browser.CloseAsync();
-            Playwright.Dispose();
-        }
-
-        protected async Task TakeScreenshotAsync(string name)
+        Context = await Browser.NewContextAsync(new BrowserNewContextOptions
         {
-            var dir = Path.Combine(BaseDir, GetType().Name, BrowserType, Timestamp, "screenshots");
-            Directory.CreateDirectory(dir);
+            RecordVideoDir = Path.Combine("videos", browserName),
+            RecordVideoSize = new RecordVideoSize { Width = 1280, Height = 720 }
+        });
 
-            var path = Path.Combine(dir, $"{name}.png");
-
-            await Page.ScreenshotAsync(new() { Path = path });
-        }
+        Page = await Context.NewPageAsync();
     }
 
+    public async Task DisposeAsync()
+    {
+        await Context.CloseAsync();
+        await Browser.CloseAsync();
+        PlaywrightInstance.Dispose();
+    }
 
+    // Screenshot с timestamp
+    protected async Task TakeScreenshotAsync(string testName, string browserName)
+    {
+        string folder = Path.Combine("screenshots", browserName);
+        Directory.CreateDirectory(folder);
+
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string filePath = Path.Combine(folder, $"{testName}_{timestamp}.png");
+
+        await Page.ScreenshotAsync(new PageScreenshotOptions { Path = filePath });
+    }
+}

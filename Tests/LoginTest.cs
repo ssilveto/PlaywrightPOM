@@ -8,20 +8,31 @@ using PlaywrightPOM.Pages;
 
 namespace PlaywrightPOM.Tests
 {
-    public class LoginTest : BaseTest
+    public class LoginTest : BaseTest, IAsyncLifetime
     {
-        [Fact]
-        public async Task Login_Should_Work()
+        private readonly BaseTest _baseTest = new BaseTest();
+
+        [Theory]
+        [InlineData("chromium")]
+        [InlineData("firefox")]
+        [InlineData("webkit")]
+        public async Task Login_Should_Work(string browserName)
         {
-            var loginPage = new LoginPage(Page);
+            await InitializeAsync(browserName);
 
-            await loginPage.Navigate();
-            await loginPage.Login("standard_user", "secret_sauce");
+            var loginPage = new LoginPage(Page); // вече Page е достъпно
+            await loginPage.GoToAsync();
+            await loginPage.LoginAsync("standard_user", "secret_sauce");
 
-            await Expect(Page).ToHaveURLAsync("https://www.saucedemo.com/inventory.html");
+            Assert.Contains("inventory.html", Page.Url);
 
-            await TakeScreenshotAsync("login_success");
+            await TakeScreenshotAsync($"LoginTest", browserName);
+
+            await DisposeAsync();
         }
-    }
 
+        public Task InitializeAsync() => Task.CompletedTask;
+        public Task DisposeAsync() => Task.CompletedTask;
+
+    }
 }

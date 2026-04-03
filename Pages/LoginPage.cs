@@ -5,7 +5,7 @@ using Microsoft.Playwright;
 
 namespace PlaywrightPOM.Pages
 {
-     public class LoginPage
+    public class LoginPage
     {
         private readonly IPage _page;
 
@@ -14,22 +14,17 @@ namespace PlaywrightPOM.Pages
             _page = page;
         }
 
-        // Locators
-        private ILocator Username => _page.GetByPlaceholder("Username");
-        private ILocator Password => _page.GetByPlaceholder("Password");
-        private ILocator LoginBtn => _page.GetByRole(AriaRole.Button, new() { Name = "Login" });
+        private ILocator UsernameField => _page.Locator("#user-name");
+        private ILocator PasswordField => _page.Locator("#password");
+        private ILocator LoginButton => _page.Locator("#login-button");
 
-        // Actions
-        public async Task Navigate()
-        {
-            await _page.GotoAsync("https://www.saucedemo.com/");
-        }
+        public async Task GoToAsync() => await _page.GotoAsync("https://www.saucedemo.com/");
 
-        public async Task Login(string user, string pass)
+        public async Task LoginAsync(string username, string password)
         {
-            await Username.FillAsync(user);
-            await Password.FillAsync(pass);
-            await LoginBtn.ClickAsync();
+            await UsernameField.FillAsync(username);
+            await PasswordField.FillAsync(password);
+            await LoginButton.ClickAsync();
         }
     }
 
