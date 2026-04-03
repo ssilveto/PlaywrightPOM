@@ -2,8 +2,8 @@
 
 on:
   push:
-    branches:  
-    - main 
+    branches:
+      - main
   pull_request:
 
 jobs:
@@ -43,12 +43,15 @@ jobs:
           BROWSER: ${{ matrix.browser }}
         run: dotnet test --logger "trx;LogFileName=TestResults_${{ matrix.browser }}.trx"
 
-      # 7️⃣ Upload videos and screenshots as artifacts
-      - name: Upload artifacts
+      # 7️⃣ Upload video artifacts (one step per folder)
+      - name: Upload video artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.browser }}
-          path: 
-            - videos/${{ matrix.browser }}
-            - screenshots/${{ matrix.browser }}
-   
+          name: videos-${{ matrix.browser }}
+          path: videos/${{ matrix.browser }}
+
+      - name: Upload screenshot artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: screenshots/${{ matrix.browser }}
