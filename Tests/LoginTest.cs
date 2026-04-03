@@ -10,7 +10,7 @@ namespace PlaywrightPOM.Tests
 {
     public class LoginTest : BaseTest, IAsyncLifetime
     {
-        private readonly BaseTest _baseTest = new BaseTest();
+
 
         [Theory]
         [InlineData("chromium")]
@@ -20,13 +20,13 @@ namespace PlaywrightPOM.Tests
         {
             await InitializeAsync(browserName);
 
-            var loginPage = new LoginPage(Page); // вече Page е достъпно
+            var loginPage = new LoginPage(Page);
             await loginPage.GoToAsync();
             await loginPage.LoginAsync("standard_user", "secret_sauce");
 
             Assert.Contains("inventory.html", Page.Url);
 
-            await TakeScreenshotAsync($"LoginTest", browserName);
+            await TakeScreenshotAsync("LoginTest", browserName);
 
             await DisposeAsync();
         }
