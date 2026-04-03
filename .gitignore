@@ -1,0 +1,12 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+
+# Playwright
+videos/
+allure-results/
+allure-report/
+
+# OS
+*.log
